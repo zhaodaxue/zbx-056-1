@@ -5,11 +5,11 @@ services:
     build: ./backend
     container_name: blast-monitor-backend
     ports:
-      - "3001:3001"
+      - "3002:3002"
     volumes:
       - ./backend/data:/app/data
     environment:
-      - PORT=3001
+      - PORT=3002
       - NODE_ENV=production
     restart: unless-stopped
 
@@ -20,6 +20,4 @@ services:
       - "8080:80"
     depends_on:
       - backend
-    environment:
-      - VITE_API_BASE_URL=http://localhost:3001
     restart: unless-stopped

@@ -59,6 +59,17 @@ router.post('/', (req, res) => {
       return res.status(400).json({ error: '至少需要布设1个监测点' })
     }
 
+    if (points.length > 6) {
+      return res.status(400).json({ error: `监测点数量不能超过 ${6} 个，当前提交了 ${points.length} 个` })
+    }
+
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i]
+      if (!p.instrumentNo || typeof p.instrumentNo !== 'string' || p.instrumentNo.trim() === '') {
+        return res.status(400).json({ error: `第 ${i + 1} 号监测点仪器编号不能为空` })
+      }
+    }
+
     const validation = validatePoints(points, blastCenter, buildings)
     if (!validation.isValid) {
       return res.status(400).json({
@@ -93,6 +104,10 @@ router.post('/validate', (req, res) => {
 
     if (!points || !Array.isArray(points)) {
       return res.status(400).json({ error: '点位数据无效' })
+    }
+
+    if (points.length > 6) {
+      return res.status(400).json({ error: `监测点数量不能超过 6 个` })
     }
 
     const validation = validatePoints(points, blastCenter, buildings)

@@ -16,6 +16,13 @@
       <p>加载中...</p>
     </div>
 
+    <div v-else-if="loadError" class="error-state">
+      <div class="error-icon">⚠</div>
+      <h3>加载失败</h3>
+      <p>{{ loadError }}</p>
+      <button class="btn btn-primary" @click="loadSnapshots">重试</button>
+    </div>
+
     <div v-else-if="snapshots.length === 0" class="empty-state">
       <div class="empty-icon">📋</div>
       <h3>暂无快照记录</h3>
@@ -126,6 +133,7 @@ import { syncSnapshots } from '../utils/storage'
 const router = useRouter()
 const snapshots = ref([])
 const isLoading = ref(false)
+const loadError = ref(null)
 
 onMounted(() => {
   loadSnapshots()
@@ -133,12 +141,13 @@ onMounted(() => {
 
 async function loadSnapshots() {
   isLoading.value = true
+  loadError.value = null
   try {
     const data = await api.getSnapshots()
     snapshots.value = data
     syncSnapshots(data)
   } catch (err) {
-    console.error('加载快照列表失败:', err)
+    loadError.value = `快照列表加载失败：${err.message}`
   } finally {
     isLoading.value = false
   }
@@ -208,12 +217,29 @@ async function deleteSnapshot(id) {
   gap: 12px;
 }
 
-.loading-state, .empty-state {
+.loading-state, .empty-state, .error-state {
   background: white;
   border-radius: 8px;
   padding: 60px 24px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error-state .error-icon {
+  font-size: 64px;
+  color: #f44336;
+  margin-bottom: 16px;
+}
+
+.error-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 20px;
+  color: #c62828;
+}
+
+.error-state p {
+  color: #666;
+  margin: 0 0 24px 0;
 }
 
 .empty-icon {

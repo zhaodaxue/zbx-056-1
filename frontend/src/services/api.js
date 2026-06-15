@@ -1,20 +1,36 @@
 const API_BASE = '/api'
 
+let _backendAlive = null
+
+export function isBackendAlive() {
+  return _backendAlive
+}
+
 async function request(url, options = {}) {
-  const response = await fetch(`${API_BASE}${url}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    },
-    ...options
-  })
+  try {
+    const response = await fetch(`${API_BASE}${url}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    })
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: '请求失败' }))
-    throw new Error(error.error || `HTTP ${response.status}`)
+    _backendAlive = true
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: '请求失败' }))
+      throw new Error(error.error || `HTTP ${response.status}`)
+    }
+
+    return response.json()
+  } catch (err) {
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      _backendAlive = false
+      throw new Error('无法连接到服务器，请检查后端服务是否已启动')
+    }
+    throw err
   }
-
-  return response.json()
 }
 
 export const api = {

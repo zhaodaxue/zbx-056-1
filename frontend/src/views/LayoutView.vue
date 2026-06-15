@@ -1,5 +1,11 @@
 <template>
   <div class="layout-view">
+    <div v-if="configError" class="error-banner">
+      <span class="error-banner-icon">⚠</span>
+      <span class="error-banner-text">{{ configError }}</span>
+      <button class="btn btn-outline btn-sm" @click="retryLoadConfig">重试连接</button>
+    </div>
+
     <div class="toolbar">
       <div class="toolbar-left">
         <h2 class="page-title">监测点布设</h2>
@@ -14,7 +20,7 @@
         <button
           class="btn btn-success"
           @click="handleSubmit"
-          :disabled="!validation.isValid || points.length === 0 || isSubmitting"
+          :disabled="!validation.isValid || points.length === 0 || isSubmitting || !!configError"
         >
           {{ isSubmitting ? '提交中...' : '提交布设方案' }}
         </button>
@@ -110,22 +116,31 @@ const points = ref([])
 const isSubmitting = ref(false)
 const showSuccessModal = ref(false)
 const lastSnapshotId = ref(null)
+const configError = ref(null)
 
 const validation = computed(() => {
   return validatePoints(points.value, config.blastCenter, config.buildings)
 })
 
 watch(points, () => {
-  // 实时校验已在 computed 中自动处理
 }, { deep: true })
 
-onMounted(async () => {
+async function loadConfig() {
+  configError.value = null
   try {
     const serverConfig = await api.getConfig()
     Object.assign(config, serverConfig)
   } catch (err) {
-    console.error('加载配置失败:', err)
+    configError.value = `场景配置加载失败：${err.message}（建筑与爆心未加载，布设不可用）`
   }
+}
+
+function retryLoadConfig() {
+  loadConfig()
+}
+
+onMounted(() => {
+  loadConfig()
 })
 
 function handlePointAdded(point) {
@@ -179,6 +194,28 @@ function goToSnapshot() {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.error-banner {
+  background: #fff3e0;
+  border: 1px solid #ff9800;
+  border-left: 4px solid #f44336;
+  border-radius: 8px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-banner-icon {
+  color: #f44336;
+  font-size: 20px;
+}
+
+.error-banner-text {
+  flex: 1;
+  color: #bf360c;
+  font-size: 14px;
 }
 
 .toolbar {

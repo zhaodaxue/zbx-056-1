@@ -52,8 +52,28 @@ export function validatePoints(points, blastCenter, buildings) {
   const violations = []
   const pointViolations = {}
 
+  if (points.length > RULES.MAX_POINTS) {
+    violations.push({
+      pointId: null,
+      pointIndex: null,
+      type: 'max_points',
+      message: `监测点数量不能超过 ${RULES.MAX_POINTS} 个，当前 ${points.length} 个`
+    })
+  }
+
   points.forEach((point, index) => {
-    pointViolations[point.id] = []
+    if (!pointViolations[point.id]) pointViolations[point.id] = []
+
+    if (!point.instrumentNo || point.instrumentNo.trim() === '') {
+      const violation = {
+        pointId: point.id,
+        pointIndex: index + 1,
+        type: 'instrument_required',
+        message: `${index + 1}号点仪器编号不能为空`
+      }
+      violations.push(violation)
+      pointViolations[point.id].push(violation)
+    }
 
     const distToBlast = distance(point, blastCenter)
     if (distToBlast < RULES.MIN_DISTANCE_TO_BLAST) {

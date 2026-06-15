@@ -12,6 +12,6 @@ echo.
 echo ========================================
 echo 服务启动完成！
 echo 前端地址: http://localhost:8080
-echo 后端地址: http://localhost:3001
+echo 后端地址: http://localhost:3002
 echo ========================================
 pause
